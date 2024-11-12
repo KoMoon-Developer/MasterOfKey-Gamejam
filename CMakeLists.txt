@@ -25,9 +25,9 @@ endif()
 
 # Our Project
 
-set(OPEN_PLEASE ./src/GameInterface.cpp)
+set(GAME_INTERFACE ./src/GameInterface.cpp)
 
-set(SRC ${OPEN_PLEASE})
+set(SRC ${GAME_INTERFACE})
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
