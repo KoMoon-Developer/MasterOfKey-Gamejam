@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11) # FetchContent is available in 3.11+
-project(OpenPlease_Executable)
+project(MasterOfKey)
 include(FetchContent)
 
 # Generate compile_commands.json
