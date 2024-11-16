@@ -26,8 +26,9 @@ endif()
 # Our Project
 
 set(GAME_INTERFACE ./src/GameInterface.cpp)
+set(MASTER_OF_KEY ./src/MasterOfKey.cpp)
 
-set(SRC ${GAME_INTERFACE})
+set(SRC ${GAME_INTERFACE} ${MASTER_OF_KEY})
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 

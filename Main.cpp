@@ -1,5 +1,4 @@
 #include <GameInterface.hpp>
-#include <cstdlib>
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -14,32 +13,32 @@ int main(void) {
              "raylib [models] example - mesh picking");
 
   // Define the camera to look into our 3d world
-  Camera camera = {0};
-  camera.position = Vector3({20.0f, 20.0f, 20.0f}); // Camera position
-  camera.target = Vector3({0.0f, 0.0f, 0.0f});      // Camera looking at point
-  camera.up =
-      Vector3({0.0f, 1.0f, 0.0f}); // Camera up vector (rotation towards target)
-  camera.fovy = 60.0f;             // Camera field-of-view Y
-  camera.projection = CAMERA_PERSPECTIVE; // Camera projection type
-
   mn::Scene scene1;
+  scene1.initCamera();
   raw::TextureC targetT("models/castle/castle_diffuse.png");
 
   scene1.add("CastleText", "models/castle/castle_diffuse.png");
   raw::TextureC *ptr = scene1.get("CastleText").pickUp<raw::TextureC *>();
   raw::ComponentC ptr1(&targetT);
 
-  raw::ModelC targetM("models/castle/house.obj",
-                      ptr1.pickUp<raw::TextureC *>()->getTexture());
+  raw::ModelC targetM("models/castle/house.obj");
   raw::ComponentC ptr2(&targetM);
 
-  scene1.add("CastleModel", ptr1.pickUp<raw::TextureC *>()->getTexture(),
-             "models/castle/house.obj");
+  scene1.add("ChestText", "models/chest/wood2.png");
 
-  Vector3 towerPos = {0.0f, 0.0f, 0.0f}; // Set model position
+  scene1.add("CastleModel", nullptr, "models/castle/house.obj");
+  scene1.add("ChestModel", nullptr, "models/chest/untitled.obj");
+
+  raw::TextureC *ptr02 = scene1.get("ChestText").pickUp<raw::TextureC *>();
+
+  scene1.get("ChestModel")
+      .pickUp<raw::ModelC *>()
+      ->setText(ptr02->getTexture());
+  scene1.get("CastleModel").pickUp<raw::ModelC *>()->setText(ptr->getTexture());
+
+  Vector3 towerPos = {0.0f, 0.0f, 0.0f};
+  Vector3 chestPos = {30.0f, 20.0f, 0.0f}; // Set model position
   SetTargetFPS(60); // Set our game to run at 60 frames-per-second
-
-  float x = 0;
 
   //--------------------------------------------------------------------------------------
   // Main game loop
@@ -48,7 +47,8 @@ int main(void) {
     // Update
     //----------------------------------------------------------------------------------
     if (IsCursorHidden())
-      UpdateCamera(&camera, CAMERA_FIRST_PERSON); // Update camera
+      UpdateCamera(scene1.getCameraIO()->getCamera(),
+                   CAMERA_FIRST_PERSON); // Update camera
 
     // Toggle camera controls
     if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
@@ -58,14 +58,11 @@ int main(void) {
         DisableCursor();
     }
 
-    camera.up =
-        Vector3({x, 1.0f, 0.0f}); // Camera up vector (rotation towards target)
-
     BeginDrawing();
 
     ClearBackground(RAYWHITE);
 
-    BeginMode3D(camera);
+    BeginMode3D(*scene1.getCameraIO()->getCamera());
 
     // Draw the tower
     // WARNING: If scale is different than 1.0f,
@@ -73,6 +70,8 @@ int main(void) {
 
     DrawModel(*scene1.get("CastleModel").pickUp<raw::ModelC *>()->getModel(),
               towerPos, 1.0f, WHITE);
+    DrawModel(*scene1.get("ChestModel").pickUp<raw::ModelC *>()->getModel(),
+              chestPos, 5.0f, WHITE);
 
     DrawGrid(10, 10.0f);
 

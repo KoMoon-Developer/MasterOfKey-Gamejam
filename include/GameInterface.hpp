@@ -8,7 +8,6 @@
 #include <iostream>
 #include <map>
 #include <memory>
-#include <typeinfo>
 #include <vector>
 
 // https://github.com/raysan5/raylib
@@ -33,11 +32,12 @@ private:
   smptr<Model> model;
 
 public:
-  ModelC(string modelPath, Texture *ptrText = nullptr);
-  ModelC(Model *_model, Texture *ptrText = nullptr);
+  ModelC(string modelPath);
+  ModelC(Model *_model);
   ~ModelC();
 
   Model *getModel() const;
+  void setText(Texture *text);
 };
 class TextureC {
 private:
@@ -56,7 +56,6 @@ private:
   smptr<ModelC> model;
   smptr<TextureC> text;
   Vector3 pos;
-  char state = 'S';
 
 public:
   ItemC(Model *_model, Texture *_text, Vector3 _pos);
@@ -67,9 +66,10 @@ public:
   Vector3 getPos() const;
 
   void setPos(Vector3 _pos);
+  void movePos(Vector3 _pos);
 };
 
-class GuiItem {};
+class GuiItemC {};
 
 class NPC {};
 
@@ -77,7 +77,7 @@ union Data {
   TextureC *t;
   ItemC *i;
   ModelC *m;
-  GuiItem *gi;
+  GuiItemC *gi;
   NPC *n;
 };
 
@@ -99,14 +99,14 @@ public:
   ComponentC();
   ComponentC(TextureC *elem);
   ComponentC(ModelC *elem);
-  ComponentC(GuiItem *elem);
+  ComponentC(GuiItemC *elem);
   ComponentC(NPC *elem);
   ComponentC(ItemC *elem);
 
   void operator=(TextureC *elem);
   void operator=(ItemC *elem);
   void operator=(ModelC *elem);
-  void operator=(GuiItem *elem);
+  void operator=(GuiItemC *elem);
   void operator=(NPC *elem);
 
   void clearC();
@@ -117,9 +117,25 @@ public:
 
 namespace IO_COMPONETS {
 
-class Camera {};
+class CameraIO {
+private:
+  smptr<Camera> camera;
 
-class Input {};
+public:
+  CameraIO();
+  ~CameraIO();
+
+  // config position
+  void config(Vector3 pos);
+  // config zoom
+  void config(float zoom);
+  // config camera Projection
+  void config(int cameraType);
+
+  Camera *getCamera();
+};
+
+class InputIN {};
 
 class StackIN {};
 
@@ -134,16 +150,19 @@ class Scene final {
 private:
   map<string, RAW_COMPONETS::ComponentC> components;
 
-  smptr<Gui> gui;
-  smptr<Camera> camera;
+  smptr<Gui> gui = nullptr;
+  smptr<IO_COMPONETS::CameraIO> camera = nullptr;
 
 public:
   ~Scene();
 
+  void initCamera();
+  IO_COMPONETS::CameraIO *getCameraIO();
+
   // add texture
   void add(string key, string textPath, Texture *text = nullptr);
   // add model
-  void add(string key, Texture *text, string modelPath, Model *model = nullptr);
+  void add(string key, Model *model, string modelPath = nullptr);
   // add item
   void add(string key, Model *model, Texture *text, Vector3 pos);
 
