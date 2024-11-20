@@ -1,4 +1,3 @@
-#include "raylib.h"
 #include <GameInterface.hpp>
 
 // Utility Functions
@@ -15,7 +14,13 @@ template <typename M, typename M2> bool fetchKey(M key, map<M, M2> *target) {
 
 // ModelC class
 
-RAW_COMPONETS::ModelC::ModelC(string modelPath) {
+RAW_COMPONENTS::ModelC::ModelC() {
+
+  smptr<Model> createModel(nullptr);
+  model = createModel;
+}
+
+RAW_COMPONENTS::ModelC::ModelC(string modelPath) {
 
   auto customDeleter = [](Model *ptr) {
     UnloadModel(*ptr);
@@ -29,7 +34,7 @@ RAW_COMPONETS::ModelC::ModelC(string modelPath) {
 
   model = createModel;
 }
-RAW_COMPONETS::ModelC::ModelC(Model *_model) {
+RAW_COMPONENTS::ModelC::ModelC(Model *_model) {
   auto customDeleter = [](Model *ptr) {
     UnloadModel(*ptr);
     delete ptr;
@@ -42,17 +47,22 @@ RAW_COMPONETS::ModelC::ModelC(Model *_model) {
   model = createModel;
 }
 
-RAW_COMPONETS::ModelC::~ModelC() { cout << "Modelo Foi Destruido" << '\n'; }
+RAW_COMPONENTS::ModelC::~ModelC() { cout << "Modelo Foi Destruido" << '\n'; }
 
-Model *RAW_COMPONETS::ModelC::getModel() const { return model.get(); }
+Model *RAW_COMPONENTS::ModelC::getModel() const { return model.get(); }
 
-void RAW_COMPONETS::ModelC::setText(Texture *text) {
+void RAW_COMPONENTS::ModelC::setText(Texture *text) {
   model->materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = *text;
 }
 
 // TextureC class
 
-RAW_COMPONETS::TextureC::TextureC(string textPath) {
+RAW_COMPONENTS::TextureC::TextureC() {
+  smptr<Texture> createText(nullptr);
+  text = createText;
+}
+
+RAW_COMPONENTS::TextureC::TextureC(string textPath) {
   auto customDeleter = [](Texture *ptr) {
     UnloadTexture(*ptr);
     delete ptr;
@@ -64,7 +74,7 @@ RAW_COMPONETS::TextureC::TextureC(string textPath) {
                             customDeleter);
   text = createText;
 }
-RAW_COMPONETS::TextureC::TextureC(Texture *_text) {
+RAW_COMPONENTS::TextureC::TextureC(Texture *_text) {
   auto customDeleter = [](Texture *ptr) {
     UnloadTexture(*ptr);
     delete ptr;
@@ -76,39 +86,23 @@ RAW_COMPONETS::TextureC::TextureC(Texture *_text) {
   text = createText;
 }
 
-RAW_COMPONETS::TextureC::~TextureC() { cout << "Textura Destruida" << '\n'; }
+RAW_COMPONENTS::TextureC::~TextureC() { cout << "Textura Destruida" << '\n'; }
 
-Texture *RAW_COMPONETS::TextureC::getTexture() const { return text.get(); }
+Texture *RAW_COMPONENTS::TextureC::getTexture() const { return text.get(); }
 
 // Item class
 
-RAW_COMPONETS::ItemC::ItemC(Model *_model, Texture *_text, Vector3 _pos) {
-  auto customDeleterM = [](ModelC *ptr) {
-    delete ptr;
-    cout << "Desalocando Item..." << '\n';
-  };
+RAW_COMPONENTS::ItemC::~ItemC() { cout << "Item Destruido" << '\n'; }
 
-  auto customDeleterT = [](TextureC *ptr) { delete ptr; };
-
-  smptr<ModelC> createModel(new ModelC(_model), customDeleterM);
-  smptr<TextureC> createText(new TextureC(_text), customDeleterT);
-
-  pos = _pos;
-  text = createText;
-  model = createModel;
+raw::ModelC *RAW_COMPONENTS::ItemC::getModelC() const {
+  return (raw::ModelC *)&model;
 }
 
-RAW_COMPONETS::ItemC::~ItemC() { cout << "Item Destruido" << '\n'; }
+Vector3 RAW_COMPONENTS::ItemC::getPosition() const { return pos; }
 
-raw::ModelC *RAW_COMPONETS::ItemC::getModelC() const { return model.get(); }
+void RAW_COMPONENTS::ItemC::setPos(Vector3 _pos) { pos = _pos; }
 
-raw::TextureC *RAW_COMPONETS::ItemC::getTextureC() const { return text.get(); }
-
-Vector3 RAW_COMPONETS::ItemC::getPos() const { return pos; }
-
-void RAW_COMPONETS::ItemC::setPos(Vector3 _pos) { pos = _pos; }
-
-void RAW_COMPONETS::ItemC::movePos(Vector3 _pos) {
+void RAW_COMPONENTS::ItemC::movePos(Vector3 _pos) {
   pos.x += _pos.x;
   pos.y += _pos.y;
   pos.y += _pos.z;
@@ -116,51 +110,51 @@ void RAW_COMPONETS::ItemC::movePos(Vector3 _pos) {
 
 // ComponentC
 
-RAW_COMPONETS::ComponentC::ComponentC() {}
+RAW_COMPONENTS::ComponentC::ComponentC() {}
 
-RAW_COMPONETS::ComponentC::ComponentC(raw::TextureC *elem) {
+RAW_COMPONENTS::ComponentC::ComponentC(raw::TextureC *elem) {
   data.t = elem, dataType = TEXTC;
 }
-RAW_COMPONETS::ComponentC::ComponentC(raw::ModelC *elem) {
+RAW_COMPONENTS::ComponentC::ComponentC(raw::ModelC *elem) {
   data.m = elem, dataType = MODELC;
 }
-RAW_COMPONETS::ComponentC::ComponentC(raw::ItemC *elem) {
+RAW_COMPONENTS::ComponentC::ComponentC(raw::ItemC *elem) {
   data.i = elem, dataType = ITEMC;
 }
-RAW_COMPONETS::ComponentC::ComponentC(raw::GuiItemC *elem) {
+RAW_COMPONENTS::ComponentC::ComponentC(raw::GuiItemC *elem) {
   data.gi = elem, dataType = GUI_ITEM;
 }
-RAW_COMPONETS::ComponentC::ComponentC(raw::NPC *elem) {
+RAW_COMPONENTS::ComponentC::ComponentC(raw::NPC *elem) {
   data.n = elem, dataType = NPCC;
 }
 
-void RAW_COMPONETS::ComponentC::operator=(raw::NPC *elem) {
+void RAW_COMPONENTS::ComponentC::operator=(raw::NPC *elem) {
   clearC();
   data.n = elem;
   dataType = NPCC;
 }
-void RAW_COMPONETS::ComponentC::operator=(raw::ModelC *elem) {
+void RAW_COMPONENTS::ComponentC::operator=(raw::ModelC *elem) {
   clearC();
   data.m = elem;
   dataType = MODELC;
 }
-void RAW_COMPONETS::ComponentC::operator=(raw::ItemC *elem) {
+void RAW_COMPONENTS::ComponentC::operator=(raw::ItemC *elem) {
   clearC();
   data.i = elem;
   dataType = ITEMC;
 }
-void RAW_COMPONETS::ComponentC::operator=(raw::TextureC *elem) {
+void RAW_COMPONENTS::ComponentC::operator=(raw::TextureC *elem) {
   clearC();
   data.t = elem;
   dataType = TEXTC;
 }
-void RAW_COMPONETS::ComponentC::operator=(raw::GuiItemC *elem) {
+void RAW_COMPONENTS::ComponentC::operator=(raw::GuiItemC *elem) {
   clearC();
   data.gi = elem;
   dataType = GUI_ITEM;
 }
 
-void RAW_COMPONETS::ComponentC::clearC() {
+void RAW_COMPONENTS::ComponentC::clearC() {
   try {
     switch (dataType) {
     case MODELC:
@@ -193,44 +187,63 @@ void RAW_COMPONETS::ComponentC::clearC() {
     cout << "Componente foi limpo" << '\n';
   }
 }
-template <typename T> T RAW_COMPONETS::ComponentC::pickUp() { return nullptr; }
-template <> raw::NPC *RAW_COMPONETS::ComponentC::pickUp<raw::NPC *>() {
+template <typename T> T RAW_COMPONENTS::ComponentC::pickUp() { return nullptr; }
+template <> raw::NPC *RAW_COMPONENTS::ComponentC::pickUp<raw::NPC *>() {
   if (dataType == NPCC)
     return data.n;
   else
     return nullptr;
 }
-template <> raw::ItemC *RAW_COMPONETS::ComponentC::pickUp<raw::ItemC *>() {
+template <> raw::ItemC *RAW_COMPONENTS::ComponentC::pickUp<raw::ItemC *>() {
   if (dataType == ITEMC)
     return data.i;
   else
     return nullptr;
 }
-template <> raw::ModelC *RAW_COMPONETS::ComponentC::pickUp<raw::ModelC *>() {
+template <> raw::ModelC *RAW_COMPONENTS::ComponentC::pickUp<raw::ModelC *>() {
   if (dataType == MODELC)
     return data.m;
   else
     return nullptr;
 }
 template <>
-raw::GuiItemC *RAW_COMPONETS::ComponentC::pickUp<raw::GuiItemC *>() {
+raw::GuiItemC *RAW_COMPONENTS::ComponentC::pickUp<raw::GuiItemC *>() {
   if (dataType == GUI_ITEM)
     return data.gi;
   else
     return nullptr;
 }
 template <>
-raw::TextureC *RAW_COMPONETS::ComponentC::pickUp<raw::TextureC *>() {
+raw::TextureC *RAW_COMPONENTS::ComponentC::pickUp<raw::TextureC *>() {
   if (dataType == TEXTC)
     return data.t;
   else
     return nullptr;
 }
+template <> raw::TextureC RAW_COMPONENTS::ComponentC::pickUp<raw::TextureC>() {
+
+  if (dataType == TEXTC)
+    return *data.t;
+  else
+    return raw::TextureC();
+}
+template <> raw::GuiItemC RAW_COMPONENTS::ComponentC::pickUp<raw::GuiItemC>() {
+  if (dataType == GUI_ITEM)
+    return *data.gi;
+  else
+    return raw::GuiItemC();
+}
+template <> raw::ModelC RAW_COMPONENTS::ComponentC::pickUp<raw::ModelC>() {
+  if (dataType == MODELC)
+    return *data.m;
+  else
+    return raw::ModelC();
+}
 
 // IO_Components
 
 // Camera
-IO_COMPONETS::CameraIO::CameraIO() {
+IO_COMPONENTS::CameraIO::CameraIO() {
   auto customDeleter = [](Camera *ptr) {
     delete ptr;
     cout << "Camera foi desalocada" << '\n';
@@ -246,39 +259,40 @@ IO_COMPONETS::CameraIO::CameraIO() {
   camera = createCamera;
 }
 
-IO_COMPONETS::CameraIO::~CameraIO() {
+IO_COMPONENTS::CameraIO::~CameraIO() {
   cout << "Componente da Camera foi Destruido" << '\n';
 }
 
-void IO_COMPONETS::CameraIO::config(Vector3 pos) { camera->position = pos; }
-void IO_COMPONETS::CameraIO::config(float zoom) { camera->fovy += zoom; }
-void IO_COMPONETS::CameraIO::config(int cameraType) {
+void IO_COMPONENTS::CameraIO::config(Vector3 pos) { camera->position = pos; }
+void IO_COMPONENTS::CameraIO::config(float zoom) { camera->fovy += zoom; }
+void IO_COMPONENTS::CameraIO::config(int cameraType) {
   camera->projection = cameraType;
 }
 
-Camera *IO_COMPONETS::CameraIO::getCamera() { return camera.get(); }
+Camera *IO_COMPONENTS::CameraIO::getCamera() { return camera.get(); }
 
 // Managers Componets
 
 // Scene class
 
-MANAGERS::Scene::~Scene() {
+MANAGERS_COMPONENTS::Scene::~Scene() {
   for (auto &c : components)
     c.second.clearC();
   cout << "Cena Foi Destruida" << '\n';
 }
 
-void MANAGERS::Scene::initCamera() {
+void MANAGERS_COMPONENTS::Scene::initCamera() {
 
   auto customDeleter = [](io::CameraIO *ptr) { delete ptr; };
   smptr<io::CameraIO> createCamera(new io::CameraIO, customDeleter);
   camera = createCamera;
 }
 
-io::CameraIO *MANAGERS::Scene::getCameraIO() { return camera.get(); }
+io::CameraIO *MANAGERS_COMPONENTS::Scene::getCameraIO() { return camera.get(); }
 
 // add texture
-void MANAGERS::Scene::add(string key, string textPath, Texture *text) {
+void MANAGERS_COMPONENTS::Scene::add(string key, string textPath,
+                                     Texture *text) {
   if (text != nullptr) {
     raw::ComponentC createC(new raw::TextureC(text));
     components.insert({key, createC});
@@ -288,7 +302,8 @@ void MANAGERS::Scene::add(string key, string textPath, Texture *text) {
   }
 }
 // add model
-void MANAGERS::Scene::add(string key, Model *model, string modelPath) {
+void MANAGERS_COMPONENTS::Scene::add(string key, Model *model,
+                                     string modelPath) {
   if (model != nullptr) {
     raw::ComponentC createC(new raw::ModelC(model));
     components.insert({key, createC});
@@ -299,13 +314,18 @@ void MANAGERS::Scene::add(string key, Model *model, string modelPath) {
 }
 
 // add item
-void MANAGERS::Scene::add(string key, Model *model, Texture *text,
-                          Vector3 pos) {
-  raw::ComponentC createC(new raw::ItemC({model, text, pos}));
-  components.insert({key, createC});
+void MANAGERS_COMPONENTS::Scene::add(string key, raw::ItemC *item,
+                                     raw::ModelC model, Texture *text,
+                                     Vector3 pos) {
+  if (item != nullptr) {
+    components.insert({key, item});
+  } else {
+    raw::ComponentC createC(new raw::ItemC(model, pos));
+    components.insert({key, createC});
+  }
 }
 
-void MANAGERS::Scene::kill(string key) {
+void MANAGERS_COMPONENTS::Scene::kill(string key) {
   try {
     if (fetchKey(key, &components)) {
       components.find(key)->second.clearC();
@@ -318,7 +338,7 @@ void MANAGERS::Scene::kill(string key) {
   }
 }
 
-raw::ComponentC MANAGERS::Scene::get(string key) {
+raw::ComponentC MANAGERS_COMPONENTS::Scene::get(string key) {
   try {
     if (fetchKey(key, &components)) {
       return components.find(key)->second;

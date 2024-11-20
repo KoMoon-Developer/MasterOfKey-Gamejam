@@ -3,6 +3,7 @@
 
 // Global Headers
 
+#include <array>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -10,8 +11,16 @@
 #include <memory>
 #include <vector>
 
+#ifndef EXTERNAL
+
+// Other Headers
+
+// https://github.com/nlohmann/json
+#include <nlohmann/json.hpp>
 // https://github.com/raysan5/raylib
 #include <raylib.h>
+
+#endif // !EXTERNAL
 
 #ifndef OBJECTS
 #define OBJECTS
@@ -25,13 +34,14 @@ template <typename T> using smptr = std::shared_ptr<T>;
 
 using uint = unsigned int;
 
-namespace RAW_COMPONETS {
+namespace RAW_COMPONENTS {
 
 class ModelC {
 private:
   smptr<Model> model;
 
 public:
+  ModelC();
   ModelC(string modelPath);
   ModelC(Model *_model);
   ~ModelC();
@@ -44,6 +54,7 @@ private:
   smptr<Texture> text;
 
 public:
+  TextureC();
   TextureC(string textPath);
   TextureC(Texture *_text);
   ~TextureC();
@@ -53,17 +64,15 @@ public:
 
 class ItemC {
 private:
-  smptr<ModelC> model;
-  smptr<TextureC> text;
+  ModelC model;
   Vector3 pos;
 
 public:
-  ItemC(Model *_model, Texture *_text, Vector3 _pos);
+  ItemC(ModelC _model, Vector3 _pos) : model(_model), pos(_pos) {}
   ~ItemC();
 
   ModelC *getModelC() const;
-  TextureC *getTextureC() const;
-  Vector3 getPos() const;
+  Vector3 getPosition() const;
 
   void setPos(Vector3 _pos);
   void movePos(Vector3 _pos);
@@ -113,9 +122,9 @@ public:
   template <typename T> T pickUp();
 };
 
-} // namespace RAW_COMPONETS
+} // namespace RAW_COMPONENTS
 
-namespace IO_COMPONETS {
+namespace IO_COMPONENTS {
 
 class CameraIO {
 private:
@@ -139,41 +148,42 @@ class InputIN {};
 
 class StackIN {};
 
-} // namespace IO_COMPONETS
+} // namespace IO_COMPONENTS
 
-namespace MANAGERS {
-
-template <typename T> class managerMemory {};
+namespace MANAGERS_COMPONENTS {
 
 class Gui final {};
 class Scene final {
 private:
-  map<string, RAW_COMPONETS::ComponentC> components;
+  map<string, RAW_COMPONENTS::ComponentC> components;
 
   smptr<Gui> gui = nullptr;
-  smptr<IO_COMPONETS::CameraIO> camera = nullptr;
+  smptr<IO_COMPONENTS::CameraIO> camera = nullptr;
 
 public:
   ~Scene();
 
   void initCamera();
-  IO_COMPONETS::CameraIO *getCameraIO();
+  IO_COMPONENTS::CameraIO *getCameraIO();
 
   // add texture
   void add(string key, string textPath, Texture *text = nullptr);
   // add model
   void add(string key, Model *model, string modelPath = nullptr);
   // add item
-  void add(string key, Model *model, Texture *text, Vector3 pos);
+  void add(string key, RAW_COMPONENTS::ItemC *item,
+           RAW_COMPONENTS::ModelC model = RAW_COMPONENTS::ModelC(),
+           Texture *text = nullptr, Vector3 pos = Vector3({0.0f, 0.0f, 0.0f}));
 
   void kill(string Key);
 
-  RAW_COMPONETS::ComponentC get(string key);
+  RAW_COMPONENTS::ComponentC get(string key);
+  map<string, RAW_COMPONENTS::ComponentC> *getAll();
 };
 
 class UniversalManager final {};
 
-} // namespace MANAGERS
+} // namespace MANAGERS_COMPONENTS
 
 #endif //! OBJECTS
 
@@ -188,17 +198,8 @@ extern bool fetchKey(M key, map<M, M2> *target);
 
 #endif // !FUNC
 
-#ifndef EXTERNAL
-
-// Other Headers
-
-// https://github.com/nlohmann/json
-#include <nlohmann/json.hpp>
-
-#endif // !EXTERNAL
-
-namespace io = IO_COMPONETS;
-namespace mn = MANAGERS;
-namespace raw = RAW_COMPONETS;
+namespace io = IO_COMPONENTS;
+namespace mn = MANAGERS_COMPONENTS;
+namespace raw = RAW_COMPONENTS;
 
 #endif // !OPEN_PLEASE
